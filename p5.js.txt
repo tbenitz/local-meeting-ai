@@ -1,0 +1,16 @@
+ui.clearOriginal.addEventListener("click",()=>{if(isRecording)return;ui.originalTranscript.value="";previousSegment="";updateTextMeta()});
+ui.clearPolished.addEventListener("click",()=>{ui.polishedTranscript.value="";updateTextMeta()});
+ui.clearMyNotes.addEventListener("click",()=>{ui.myNotes.value="";updateTextMeta()});
+ui.clearAiNotes.addEventListener("click",()=>{ui.aiNotes.value="";updateTextMeta()});
+ui.refreshCompare.addEventListener("click",updateCompare);
+ui.downloadAllTxt.addEventListener("click",()=>downloadText(`${safeFileBase()}-all.txt`,allTextExport()));
+ui.downloadMd.addEventListener("click",()=>downloadText(`${safeFileBase()}-ai-notes.md`,ui.aiNotes.value,"text/markdown"));
+ui.exportPdf.addEventListener("click",()=>{try{exportPdf()}catch(err){handleAsyncError(err)}});ui.clearLog.addEventListener("click",()=>ui.log.textContent="Ready.");
+[ui.originalTranscript,ui.polishedTranscript,ui.myNotes,ui.aiNotes].forEach(el=>el.addEventListener("input",updateTextMeta));
+ui.notesInstruction.addEventListener("input",saveDraft);ui.notesType.addEventListener("change",saveDraft);ui.notesSource.addEventListener("change",saveDraft);ui.chunkSeconds.addEventListener("change",saveDraft);ui.timestamps.addEventListener("change",saveDraft);ui.lowMemory.addEventListener("change",saveDraft);
+ui.notesPreset.addEventListener("change",()=>{applyNotesPreset();saveDraft()});ui.preserveDetails.addEventListener("change",saveDraft);[ui.notesChunkTokens,ui.notesMergeTokens,ui.notesIntermediateTokens,ui.notesFinalTokens].forEach(el=>el.addEventListener("change",()=>{ui.notesPreset.value="custom";ui.presetNote.textContent="Custom: using your token budgets.";saveDraft()}));
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{switchPane(t.dataset.pane);if(t.dataset.pane==="comparePane")updateCompare()}));
+window.addEventListener("beforeunload",e=>{if(isRecording){e.preventDefault();e.returnValue=""}});
+
+drawIdleWave();restoreDraft();checkGpu();updateTextMeta();updateMetricDisplays();resetTaskActivity();setActivity("asr",0,null,ui.asrWorkMeta.textContent);setActivity("clean",0,null,ui.cleanWorkMeta.textContent);setActivity("notes",0,null,ui.notesWorkMeta.textContent);
+log(`App initialized. Long-meeting hierarchical processing enabled. Original/polished/manual/AI outputs are separate. LFM2.5-350M q4 is the notes model.`);
