@@ -4,50 +4,166 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="theme-color" content="#0b1020" />
-<title>Local Meeting AI — models run in your browser</title>
-<meta name="description" content="Live meeting transcription and notes. Moonshine, S1-mini, and LFM2.5 run locally in the browser with WebGPU. Audio is not uploaded to a meeting-AI server." />
+<title>Local Meeting AI — 100% In-Browser Transcription + Notes</title>
+<meta name="description" content="Live meeting transcription and notes that run entirely in your browser. Moonshine, S1-mini, and LFM2.5 stay on-device after download — audio is never sent to a meeting-AI server." />
 <style>
-:root{color-scheme:dark;--bg:#070b14;--line:#24304a;--text:#eef3ff;--muted:#94a3bd;--green:#55d69a}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--text);background:
+:root{
+  color-scheme:dark;
+  --bg:#070b14;--panel:#0d1322;--panel2:#111a2d;--line:#24304a;--text:#eef3ff;--muted:#94a3bd;
+  --blue:#66a3ff;--green:#55d69a;--red:#ff6b70;--amber:#f8c15b;--shadow:0 20px 60px rgba(0,0,0,.38);
+}
+*{box-sizing:border-box} html{background:var(--bg)} body{margin:0;min-width:320px;background:
 radial-gradient(circle at 12% -10%,rgba(66,126,255,.18),transparent 35rem),
-radial-gradient(circle at 92% 5%,rgba(79,209,167,.09),transparent 28rem),var(--bg)}
-.wrap{width:min(760px,calc(100% - 32px));margin:0 auto;padding:48px 0 80px}
-.pill{display:inline-flex;gap:8px;align-items:center;border:1px solid #245b48;background:#0b1a16;color:#b7f0d3;padding:8px 12px;border-radius:999px;font-size:13px}
-h1{font-size:34px;line-height:1.15;margin:18px 0 10px}
-.lead{color:var(--muted);font-size:17px;line-height:1.6}
-.card{margin-top:22px;border:1px solid var(--line);border-radius:18px;background:#0d1322;padding:20px}
-.card h2{margin:0 0 10px;font-size:15px}
-table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:8px 0;border-bottom:1px solid #1d2940;vertical-align:top}th{color:#9db0ca;font-weight:600}
-.ok{color:var(--green)}
-a{color:#8bb4ff}
-.steps{margin:0;padding-left:18px;color:#d5def0;line-height:1.6}
-.note{font-size:13px;color:var(--muted);line-height:1.55}
+radial-gradient(circle at 92% 5%,rgba(79,209,167,.09),transparent 28rem),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit}.app{width:min(1480px,calc(100% - 28px));margin:0 auto;padding:22px 0 44px}
+.top{display:flex;gap:18px;align-items:center;justify-content:space-between;margin-bottom:18px}.brand{display:flex;gap:12px;align-items:center}.logo{width:42px;height:42px;border-radius:13px;border:1px solid #2a3d62;background:linear-gradient(145deg,#1b2b4b,#0b1222);box-shadow:inset 0 1px rgba(255,255,255,.09),var(--shadow);display:grid;place-items:center}.bars{display:flex;gap:3px;align-items:center;height:18px}.bars i{display:block;width:3px;border-radius:4px;background:#dce8ff}.bars i:nth-child(1),.bars i:nth-child(5){height:6px;opacity:.55}.bars i:nth-child(2),.bars i:nth-child(4){height:12px}.bars i:nth-child(3){height:18px}.brand h1{font-size:18px;margin:0}.brand p{font-size:12px;color:var(--muted);margin:3px 0 0}.privacy{font-size:12px;color:#9eb0ca;border:1px solid var(--line);background:#0b1120;padding:8px 11px;border-radius:999px}
+.grid{display:grid;grid-template-columns:minmax(300px,410px) minmax(0,1fr);gap:16px}.side,.workspace{min-width:0}.card{background:linear-gradient(180deg,rgba(17,26,45,.95),rgba(11,17,31,.96));border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}.card+.card{margin-top:14px}.cardhead{padding:15px 17px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}.cardhead h2{font-size:13px;margin:0;letter-spacing:.01em}.cardbody{padding:16px}.statusrow{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px 0;border-bottom:1px solid rgba(36,48,74,.72)}.statusrow:last-child{border:0}.statuslabel{font-size:12px;color:#dce7f9}.statussub{font-size:10px;color:var(--muted);margin-top:3px}.badge{align-self:center;font-size:10px;border:1px solid #34425e;color:#a9b8d0;background:#0a101d;padding:5px 7px;border-radius:999px}.badge.ok{border-color:#245b48;color:#77e6b3}.badge.busy{border-color:#654e1f;color:#ffd47c}.badge.err{border-color:#6b2931;color:#ff9297}
+.progress{height:6px;background:#090e19;border:1px solid #202c44;border-radius:99px;overflow:hidden;margin-top:11px}.progress>span{display:block;width:0;height:100%;background:linear-gradient(90deg,#5b8cff,#63d9aa);transition:width .18s}.progress.indeterminate>span{width:32%;animation:ind 1.1s ease-in-out infinite}@keyframes ind{from{transform:translateX(-110%)}to{transform:translateX(330%)}}
+.btns{display:flex;flex-wrap:wrap;gap:8px}.btn{border:1px solid #33425f;background:#121c30;color:#dfe9fb;padding:9px 11px;border-radius:10px;cursor:pointer;transition:.16s}.btn:hover:not(:disabled){background:#192640;border-color:#496184}.btn.primary{background:linear-gradient(180deg,#377ef6,#2469df);border-color:#4e8eff;color:#fff}.btn.record{background:linear-gradient(180deg,#df4a54,#bd303a);border-color:#f16a72;color:white}.btn.success{background:#173d32;border-color:#2a7259;color:#9ef0ca}.btn:disabled{opacity:.42;cursor:not-allowed}.btn.small{padding:7px 9px;font-size:11px}.full{width:100%;justify-content:center}
+.field{margin-bottom:12px}.field:last-child{margin-bottom:0}.field label{display:block;font-size:11px;color:#a9b7cb;margin-bottom:6px}.field select,.field input[type=text],.field textarea{width:100%;border:1px solid #2c3a56;background:#090f1c;color:#eaf1ff;border-radius:10px;padding:9px 10px;outline:none}.field select:focus,.field textarea:focus,.field input:focus{border-color:#568bde;box-shadow:0 0 0 3px rgba(79,139,230,.12)}.field textarea{min-height:76px;resize:vertical}.check{display:flex;gap:9px;align-items:flex-start;font-size:11px;color:#b7c4d7}.check input{margin-top:2px}.hint{font-size:10px;line-height:1.45;color:#7f90aa;margin-top:5px}.notice{font-size:10px;line-height:1.5;color:#91a1b8;padding:10px 11px;border:1px solid #26334d;background:#0a101d;border-radius:10px}
+.recorder{padding:16px 18px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:15px;align-items:center}.wavewrap{min-width:0}.state{display:flex;align-items:center;gap:8px;margin-bottom:8px}.dot{width:9px;height:9px;border-radius:50%;background:#5a6880;box-shadow:0 0 0 4px rgba(255,255,255,.025)}.dot.recording{background:var(--red);animation:pulse 1.4s infinite}@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(255,93,102,.08)}}.dot.ready{background:var(--green)}.dot.busy{background:var(--amber)}.state strong{font-size:13px}.state span{font-size:11px;color:var(--muted)}canvas{display:block;width:100%;height:70px;border:1px solid #202d46;border-radius:12px;background:#080d17}.recbuttons{display:flex;gap:8px;flex-direction:column;min-width:125px}.timer{text-align:center;font-variant-numeric:tabular-nums;font-size:20px;font-weight:650;letter-spacing:.02em;margin-bottom:4px}.backlog{text-align:center;color:var(--muted);font-size:9px;min-height:13px}
+.tabs{display:flex;gap:4px;padding:10px;border-bottom:1px solid var(--line);background:#0b1120;overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;padding:8px 11px;border-radius:9px;border:0;background:transparent;color:#8495b0;cursor:pointer;font-size:12px}.tab.active{background:#16223a;color:#e6efff}.pane{display:none}.pane.active{display:block}.editorbar{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:7px;align-items:center;justify-content:space-between}.editorbar .left,.editorbar .right{display:flex;flex-wrap:wrap;gap:7px;align-items:center}.meta{font-size:10px;color:#7f90aa}.editor{width:100%;min-height:440px;border:0;outline:0;resize:vertical;background:#080d17;color:#e5edfb;padding:17px 18px;line-height:1.62;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}.editor.notes{font-family:Inter,ui-sans-serif,system-ui,sans-serif}.empty-note{padding:28px;color:#7f90aa;font-size:12px}.audioPanel{padding:18px}.audioPanel audio{width:100%;margin:8px 0 14px}.modelinfo{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.mini{border:1px solid #273650;background:#0a101d;border-radius:11px;padding:9px}.mini strong{display:block;font-size:11px}.mini span{font-size:9px;color:#8292aa;line-height:1.4;display:block;margin-top:3px}.log{max-height:140px;overflow:auto;font:10px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:#8fa0b8;background:#080d17;border:1px solid #202c43;border-radius:10px;padding:9px;white-space:pre-wrap}.fatal{display:none;margin:0 0 14px;padding:11px 12px;border-radius:12px;border:1px solid #672e36;background:#291116;color:#ffafb3;font-size:12px;line-height:1.5}.fatal.show{display:block}
+.compareGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px}.compareCard{min-width:0;border:1px solid #24324a;border-radius:12px;background:#090f1c;overflow:hidden}.compareCard h3{margin:0;padding:9px 11px;border-bottom:1px solid #24324a;font-size:11px;color:#cbd8eb;background:#0d1525}.compareText{display:block;width:100%;height:230px;resize:vertical;border:0;outline:0;background:#080d17;color:#dce6f6;padding:11px;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.compareText.human{font-family:Inter,ui-sans-serif,system-ui,sans-serif}.sourceBadge{display:inline-flex;align-items:center;gap:6px;font-size:10px;color:#9db0ca;border:1px solid #2d3b55;background:#0a101d;padding:5px 7px;border-radius:999px}
+.advanced{margin-top:10px;padding:10px;border:1px solid #26344e;border-radius:11px;background:#090f1c}.advanced summary{cursor:pointer;font-size:11px;color:#cbd8ea;user-select:none}.advancedGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}.field input[type=number]{width:100%;border:1px solid #2c3a56;background:#090f1c;color:#eaf1ff;border-radius:10px;padding:9px 10px;outline:none}.activity{display:grid;gap:10px}.activityRow{border:1px solid #26344e;background:#090f1c;border-radius:11px;padding:10px}.activityHead{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:11px}.activityHead strong{font-size:11px}.activityPct{font-variant-numeric:tabular-nums;color:#b9c9df}.activityBar{height:5px;margin-top:7px;background:#080c15;border:1px solid #1e2a40;border-radius:99px;overflow:hidden}.activityBar>span{display:block;height:100%;width:0;background:linear-gradient(90deg,#5b8cff,#63d9aa);transition:width .15s}.activityBar.busy>span{width:26%;animation:ind 1.1s ease-in-out infinite}.activityMeta{margin-top:6px;font-size:9px;line-height:1.45;color:#8191a9;word-break:break-word}.inlineStat{font-variant-numeric:tabular-nums}.presetNote{font-size:9px;line-height:1.45;color:#8090a8;margin-top:6px}@media(max-width:520px){.advancedGrid{grid-template-columns:1fr}}
+@media(max-width:980px){.grid{grid-template-columns:1fr}.side{order:2}.workspace{order:1}.editor{min-height:330px}.modelinfo{grid-template-columns:1fr}.top{align-items:flex-start;flex-wrap:wrap}.privacy{display:inline-flex}}
+@media(max-width:760px){.compareGrid{grid-template-columns:1fr}}
+@media(max-width:600px){.app{width:min(100% - 18px,1480px);padding-top:10px}.recorder{grid-template-columns:1fr}.recbuttons{flex-direction:row;flex-wrap:wrap}.timer,.backlog{width:100%}.editor{min-height:300px}.top{margin-bottom:10px}}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 </head>
 <body>
-<div class="wrap">
-  <div class="pill">100% local after download · audio never leaves this device</div>
-  <h1>Local Meeting AI</h1>
-  <p class="lead">Live transcription, transcript cleanup, and meeting notes run <b>in your browser</b> with WebGPU. There is no meeting-AI backend. Hugging Face is used only for the first model download; after that the files stay in the browser cache.</p>
-  <div class="card">
-    <h2>What runs on your machine</h2>
-    <table>
-      <tr><th>Job</th><th>Model</th><th>Where</th></tr>
-      <tr><td>Speech-to-text</td><td>Moonshine Base</td><td class="ok">Browser / WebGPU</td></tr>
-      <tr><td>Transcript polish</td><td>S1-mini</td><td class="ok">Browser / WebGPU</td></tr>
-      <tr><td>Notes + summary</td><td>LFM2.5 350M q4</td><td class="ok">Browser / WebGPU</td></tr>
-      <tr><td>MP3 + PDF</td><td>lamejs + jsPDF</td><td class="ok">Browser</td></tr>
-    </table>
+<div class="app">
+  <header class="top">
+    <div class="brand"><div class="logo"><span class="bars"><i></i><i></i><i></i><i></i><i></i></span></div><div><h1>Local Meeting AI</h1><p>Live transcription · notes · MP3 · PDF · models run in your browser</p></div></div>
+    <div class="privacy">🔒 100% local in your browser · models never leave this device after download</div>
+  </header>
+  <div class="notice" style="margin:0 0 16px;border-color:#245b48;color:#b7f0d3;background:#0b1a16">
+    <b>Privacy:</b> Speech recognition (Moonshine), transcript cleanup (S1-mini), and notes (LFM2.5) all run locally in your browser with WebGPU. After the first model download, audio and inference stay on this device — nothing is uploaded to a meeting-AI server.
   </div>
-  <div class="card">
-    <h2>Open the live app</h2>
-    <ol class="steps">
-      <li>Use current Chrome or Edge with WebGPU.</li>
-      <li>Turn on Pages once: repo <b>Settings → Pages → Source = GitHub Actions</b>, then rerun the failed deploy workflow.</li>
-      <li>Upload the full single-file app as <code>index.html</code> in this repo (replace this landing page) so recording / notes load here.</li>
-    </ol>
-    <p class="note">Source: <a href="https://github.com/tbenitz/local-meeting-ai">github.com/tbenitz/local-meeting-ai</a>. After Pages is enabled the durable URL is <a href="https://tbenitz.github.io/local-meeting-ai/">tbenitz.github.io/local-meeting-ai</a>.</p>
+  <div id="fatal" class="fatal"></div>
+  <div class="grid">
+    <aside class="side">
+      <section class="card">
+        <div class="cardhead"><h2>AI models</h2><span id="gpuBadge" class="badge">checking GPU</span></div>
+        <div class="cardbody">
+          <div class="statusrow"><div><div class="statuslabel">Speech recognition</div><div class="statussub">Moonshine Base · used by S1 Mini WebGPU</div></div><span id="asrBadge" class="badge">not loaded</span></div>
+          <div class="statusrow"><div><div class="statuslabel">Transcript cleanup</div><div class="statussub">S1-mini · optional final polish</div></div><span id="cleanBadge" class="badge">not loaded</span></div>
+          <div class="statusrow"><div><div class="statuslabel">Notes + summarizer</div><div id="notesSub" class="statussub">LFM2.5 350M · q4 WebGPU</div></div><span id="notesBadge" class="badge">not loaded</span></div>
+          <div id="progress" class="progress"><span></span></div>
+          <div id="progressText" class="hint">Models download once, then Transformers.js reuses the browser cache.</div>
+          <div class="btns" style="margin-top:12px"><button id="loadSpeech" class="btn primary full">Load all AI models</button></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="cardhead"><h2>Processing activity</h2><span id="overallWorkPct" class="badge">idle</span></div>
+        <div class="cardbody">
+          <div class="activity">
+            <div class="activityRow"><div class="activityHead"><strong>Overall task</strong><span id="overallWorkLabel" class="activityPct">Idle</span></div><div id="overallWorkBar" class="activityBar"><span></span></div><div id="overallWorkMeta" class="activityMeta">No processing task running.</div></div>
+            <div class="activityRow"><div class="activityHead"><strong>Moonshine · live ASR</strong><span id="asrWorkPct" class="activityPct">idle</span></div><div id="asrWorkBar" class="activityBar"><span></span></div><div id="asrWorkMeta" class="activityMeta">0.0 s audio · 0 transcript tokens</div></div>
+            <div class="activityRow"><div class="activityHead"><strong>S1-mini · polish</strong><span id="cleanWorkPct" class="activityPct">idle</span></div><div id="cleanWorkBar" class="activityBar"><span></span></div><div id="cleanWorkMeta" class="activityMeta">0 input · 0 output tokens</div></div>
+            <div class="activityRow"><div class="activityHead"><strong>LFM2.5 · notes</strong><span id="notesWorkPct" class="activityPct">idle</span></div><div id="notesWorkBar" class="activityBar"><span></span></div><div id="notesWorkMeta" class="activityMeta">0 input · 0 output tokens</div></div>
+          </div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="cardhead"><h2>Transcription</h2></div>
+        <div class="cardbody">
+          <div class="field"><label>Live chunk size</label><select id="chunkSeconds"><option value="5.5">5.5 sec — faster updates</option><option value="7" selected>7 sec — balanced</option><option value="9">9 sec — more context</option></select><div class="hint">A 0.75-second overlap reduces clipped words at chunk boundaries.</div></div>
+          <label class="check"><input id="timestamps" type="checkbox" checked><span>Add timestamps to each live segment</span></label>
+          <label class="check" style="margin-top:8px"><input id="autoCleanup" type="checkbox"><span>Run S1-mini cleanup automatically after Stop</span></label>
+        </div>
+      </section>
+      <section class="card">
+        <div class="cardhead"><h2>Notes + summary</h2><span class="sourceBadge">LFM2.5 350M</span></div>
+        <div class="cardbody">
+          <div class="notice" style="margin-bottom:12px">Uses the same <b>onnx-community/LFM2.5-350M-ONNX</b> q4 WebGPU model as the WebML Community summarizer demo.</div>
+          <div class="field"><label>AI source</label><select id="notesSource"><option value="polished">Polished transcript (preferred)</option><option value="original">Original transcript</option><option value="myNotes">My handwritten / pasted notes</option><option value="polishedMyNotes">Polished transcript + my notes</option><option value="both">Original + polished for comparison</option><option value="all">Original + polished + my notes</option></select></div>
+          <div class="field"><label>Notes format</label><select id="notesType"><option value="meeting">Meeting notes</option><option value="summary">Executive summary</option><option value="actions">Action items</option><option value="detailed">Detailed structured notes</option></select></div>
+          <div class="field"><label>Long-meeting preset</label><select id="notesPreset"><option value="balanced" selected>Balanced — recommended</option><option value="detail">High detail / better retention</option><option value="max">Maximum retention / slower</option><option value="custom">Custom token budgets</option></select><div id="presetNote" class="presetNote">Token-aware chunking + hierarchical merge. Long meetings are processed section-by-section instead of truncated.</div></div>
+          <label class="check"><input id="preserveDetails" type="checkbox" checked><span>For multi-part meetings, append detailed section notes after the final summary so compression cannot silently discard unique details</span></label>
+          <details id="advancedNotes" class="advanced"><summary>Advanced long-meeting settings</summary><div class="advancedGrid">
+            <div class="field"><label>Source tokens per chunk</label><input id="notesChunkTokens" type="number" min="1500" max="20000" step="250" value="6000"></div>
+            <div class="field"><label>Merge input budget</label><input id="notesMergeTokens" type="number" min="3000" max="24000" step="500" value="12000"></div>
+            <div class="field"><label>Intermediate output cap</label><input id="notesIntermediateTokens" type="number" min="256" max="2048" step="64" value="900"></div>
+            <div class="field"><label>Final output cap</label><input id="notesFinalTokens" type="number" min="256" max="8192" step="128" value="2200"></div>
+          </div></details>
+          <div class="field" style="margin-top:12px"><label>Optional instructions</label><textarea id="notesInstruction" placeholder="Example: Focus on decisions, deadlines, owners, ticket numbers, and unresolved questions."></textarea></div>
+          <label class="check"><input id="lowMemory" type="checkbox"><span>Low-memory fallback: unload speech models before loading LFM2.5</span></label>
+          <div class="btns" style="margin-top:12px"><button id="generateNotes" class="btn success full">Generate with LFM2.5</button></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="cardhead"><h2>Export</h2></div>
+        <div class="cardbody">
+          <label class="check"><input id="pdfAiNotes" type="checkbox" checked><span>Include AI notes</span></label>
+          <label class="check" style="margin-top:7px"><input id="pdfMyNotes" type="checkbox" checked><span>Include my handwritten notes</span></label>
+          <label class="check" style="margin-top:7px"><input id="pdfPolished" type="checkbox" checked><span>Include polished transcript</span></label>
+          <label class="check" style="margin-top:7px"><input id="pdfOriginal" type="checkbox"><span>Include original transcript</span></label>
+          <div class="btns" style="margin-top:11px"><button id="exportPdf" class="btn">Export PDF</button><button id="downloadAllTxt" class="btn">All text</button><button id="downloadMd" class="btn">AI notes MD</button></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="cardhead"><h2>Runtime log</h2><button id="clearLog" class="btn small">Clear</button></div>
+        <div class="cardbody"><div id="log" class="log">Ready.</div></div>
+      </section>
+    </aside>
+    <main class="workspace card">
+      <div class="recorder">
+        <div class="wavewrap">
+          <div class="state"><span id="stateDot" class="dot"></span><strong id="stateText">Idle</strong><span id="stateDetail">Load all AI models to begin</span></div>
+          <canvas id="wave" width="900" height="140"></canvas>
+        </div>
+        <div class="recbuttons">
+          <div id="timer" class="timer">00:00</div><div id="backlog" class="backlog"></div>
+          <button id="recordBtn" class="btn record" disabled>Start recording</button>
+          <button id="stopBtn" class="btn" disabled>Stop + finish</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-pane="originalPane">Original</button>
+        <button class="tab" data-pane="polishedPane">Polished</button>
+        <button class="tab" data-pane="myNotesPane">My notes</button>
+        <button class="tab" data-pane="aiNotesPane">AI notes</button>
+        <button class="tab" data-pane="comparePane">Compare</button>
+        <button class="tab" data-pane="audioPane">Recording</button>
+      </div>
+      <section id="originalPane" class="pane active">
+        <div class="editorbar"><div class="left"><button id="cleanTranscript" class="btn small">Create / refresh polished copy</button><button id="copyOriginal" class="btn small">Copy</button></div><div class="right"><span id="originalMeta" class="meta">0 words</span><button id="clearOriginal" class="btn small">Clear</button></div></div>
+        <textarea id="originalTranscript" class="editor" spellcheck="true" placeholder="Live transcription appears here."></textarea>
+      </section>
+      <section id="polishedPane" class="pane">
+        <div class="editorbar"><div class="left"><button id="repolishTranscript" class="btn small">Regenerate from original</button><button id="copyPolished" class="btn small">Copy</button></div><div class="right"><span id="polishedMeta" class="meta">No polished transcript yet</span><button id="clearPolished" class="btn small">Clear</button></div></div>
+        <textarea id="polishedTranscript" class="editor" spellcheck="true" placeholder="S1-mini polished transcript appears here."></textarea>
+      </section>
+      <section id="myNotesPane" class="pane">
+        <div class="editorbar"><div class="left"><button id="copyMyNotes" class="btn small">Copy</button></div><div class="right"><span id="myNotesMeta" class="meta">No handwritten notes yet</span><button id="clearMyNotes" class="btn small">Clear</button></div></div>
+        <textarea id="myNotes" class="editor notes" spellcheck="true" placeholder="Type your own notes here."></textarea>
+      </section>
+      <section id="aiNotesPane" class="pane">
+        <div class="editorbar"><div class="left"><button id="copyAiNotes" class="btn small">Copy</button></div><div class="right"><span id="aiNotesMeta" class="meta">No AI notes yet</span><button id="clearAiNotes" class="btn small">Clear</button></div></div>
+        <textarea id="aiNotes" class="editor notes" spellcheck="true" placeholder="LFM2.5 summary / meeting notes appear here."></textarea>
+      </section>
+      <section id="comparePane" class="pane">
+        <div class="editorbar"><div class="left"><span class="meta">Side-by-side snapshots update automatically as you edit.</span></div><div class="right"><button id="refreshCompare" class="btn small">Refresh</button></div></div>
+        <div class="compareGrid">
+          <div class="compareCard"><h3>Original transcript</h3><textarea id="compareOriginal" class="compareText" readonly></textarea></div>
+          <div class="compareCard"><h3>Polished transcript</h3><textarea id="comparePolished" class="compareText" readonly></textarea></div>
+          <div class="compareCard"><h3>My notes</h3><textarea id="compareMyNotes" class="compareText human" readonly></textarea></div>
+          <div class="compareCard"><h3>AI notes / summary</h3><textarea id="compareAiNotes" class="compareText human" readonly></textarea></div>
+        </div>
+      </section>
+      <section id="audioPane" class="pane">
+        <div class="audioPanel">
+          <h3 style="font-size:13px;margin:0 0 6px">MP3 recording</h3>
+          <p class="hint">MP3 is encoded locally while recording.</p>
+          <audio id="audioPlayer" controls></audio>
+          <div class="btns"><a id="downloadMp3" class="btn" style="text-decoration:none;pointer-events:none;opacity:.42">Download MP3</a></div>
+        </div>
+      </section>
+    </main>
   </div>
 </div>
+<script type="module" src="./app.js"></script>
 </body>
 </html>
